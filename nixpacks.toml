@@ -1,0 +1,8 @@
+[setup]
+pkgs = ["bun"]
+
+[install]
+cmds = ["bun install"]
+
+[start]
+cmd = "bun run start"
