@@ -13,8 +13,7 @@ function getNextService() {
 }
 
 const server = Bun.serve({
-  port: process.env.PORT || 3000,
-  idleTimeout: 60,
+  port: Number(process.env.PORT) || 3000,
   async fetch(req) {
     const url = new URL(req.url);
 
@@ -24,6 +23,17 @@ const server = Bun.serve({
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
+
+    // Health check endpoint
+    if (req.method === "GET" && url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // Handle CORS preflight requests
     if (req.method === "OPTIONS") {
