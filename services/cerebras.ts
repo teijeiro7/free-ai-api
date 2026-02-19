@@ -12,9 +12,8 @@ export const cerebrasService: AIService = {
   name: "Cerebras",
   chat: async function (messages: ChatMessage[]) {
     const models = [
-      "llama-3.3-70b-versatile",
-      "qwen-3-32b-instruct",
-      "llama-3.1-8b-instruct",
+      "llama3.3-70b",
+      "llama3.1-8b",
     ];
 
     const cerebrasMessages: CerebrasMessage[] = messages as CerebrasMessage[];

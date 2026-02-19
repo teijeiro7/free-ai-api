@@ -4,13 +4,6 @@ import { openRouterService } from "./services/openrouter";
 import type { AIService, ChatMessage } from "./types";
 
 const services: AIService[] = [groqService, cerebrasService, openRouterService];
-let currentServiceIndex = 0;
-
-function getNextService() {
-  const service = services[currentServiceIndex];
-  currentServiceIndex = (currentServiceIndex + 1) % services.length;
-  return service;
-}
 
 const server = Bun.serve({
   port: Number(process.env.PORT) || 3000,
@@ -56,10 +49,11 @@ const server = Bun.serve({
         }
 
         let lastError: any = null;
+        const startIndex = Math.floor(Math.random() * services.length);
 
-        // Try each service round-robin starting from current index
         for (let i = 0; i < services.length; i++) {
-          const service = getNextService();
+          const serviceIndex = (startIndex + i) % services.length;
+          const service = services[serviceIndex];
           console.log(
             `[${new Date().toISOString()}] Trying service: ${service.name}`,
           );
@@ -69,17 +63,32 @@ const server = Bun.serve({
 
             const stream = new ReadableStream({
               async start(controller) {
+                let closed = false;
                 try {
                   for await (const chunk of responseStream) {
-                    controller.enqueue(chunk);
+                    if (closed) break;
+                    try {
+                      controller.enqueue(chunk);
+                    } catch (enqueueError) {
+                      closed = true;
+                      break;
+                    }
                   }
-                  controller.close();
+                  if (!closed) {
+                    try {
+                      controller.close();
+                    } catch (e) {}
+                  }
                 } catch (streamError) {
                   console.error(
                     `Stream error for ${service.name}:`,
                     streamError,
                   );
-                  controller.error(streamError);
+                  if (!closed) {
+                    try {
+                      controller.error(streamError);
+                    } catch (e) {}
+                  }
                 }
               },
             });
