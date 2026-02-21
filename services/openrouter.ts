@@ -15,9 +15,9 @@ export const openRouterService: AIService = {
     });
 
     const models = [
-      "qwen/qwen3-235b-a22b-thinking-2507",
-      "z-ai/glm-4.5-air:free",
-      "deepseek/deepseek-r1-0528:free",
+      "google/gemini-2.0-flash-exp:free",
+      "deepseek/deepseek-r1:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
     ];
 
     let lastError: Error | null = null;
