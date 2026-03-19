@@ -12,7 +12,7 @@ export const cerebrasService: AIService = {
   name: "Cerebras",
   chat: async function (messages: ChatMessage[]) {
     const models = [
-      "llama3.3-70b",
+      "qwen-3-235b-a22b-instruct",
       "llama3.1-8b",
     ];
 
