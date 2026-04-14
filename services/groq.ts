@@ -3,19 +3,22 @@ import type { AIService, ChatMessage } from "../types";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Lista de modelos ordenados por preferencia.
+const GROQ_MODELS = [
+  "llama-3.3-70b-versatile",
+  "llama3.3-70b-specdec",
+  "llama-3.1-8b-instant",
+  "llama3-70b-8192",
+];
+
 export const groqService: AIService = {
   name: "Groq",
   chat: async function (messages: ChatMessage[]) {
-    const models = [
-      "llama-3.3-70b-versatile",
-      "llama-3.1-8b-instant",
-      "gemma2-9b-it",
-      "mixtral-8x7b-32768",
-    ];
+    let lastError: any = null;
 
-    let lastError: Error | null = null;
-    for (const model of models) {
+    for (const model of GROQ_MODELS) {
       try {
+        console.log(`[Groq] Trying model: ${model}`);
         const stream = await groq.chat.completions.create({
           messages,
           model,
@@ -27,9 +30,16 @@ export const groqService: AIService = {
             yield chunk.choices[0]?.delta?.content || "";
           }
         })();
-      } catch (error) {
-        lastError = error as Error;
-        console.error(`Failed with model ${model}:`, error);
+      } catch (err: any) {
+        console.error(`[Groq] Model ${model} failed:`, err.message);
+        lastError = err;
+        
+        // Si no es un error de "modelo no encontrado" o similar (400),
+        // quizás no valga la pena reintentar con otro modelo.
+        // Pero para ser robustos ante depreciaciones, seguimos al siguiente.
+        if (err.status !== 400 && err.status !== 404) {
+          break; 
+        }
       }
     }
 
