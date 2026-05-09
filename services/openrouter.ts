@@ -20,9 +20,10 @@ export const openRouterService: AIService = {
       "nvidia/nemotron-3-super-120b-a12b:free",
     ];
 
-    let lastError: Error | null = null;
+    let lastError: any = null;
     for (const model of models) {
       try {
+        console.log(`[OpenRouter] Trying model: ${model}`);
         const stream = await openai.chat.completions.create({
           messages,
           model,
@@ -34,9 +35,14 @@ export const openRouterService: AIService = {
             yield chunk.choices[0]?.delta?.content || "";
           }
         })();
-      } catch (error) {
-        lastError = error as Error;
-        console.error(`Failed with model ${model}:`, error);
+      } catch (error: any) {
+        lastError = error;
+        console.error(`[OpenRouter] Model ${model} failed:`, error.message);
+
+        // Retry for model-related issues
+        if (error.status !== 400 && error.status !== 404) {
+          break;
+        }
       }
     }
 

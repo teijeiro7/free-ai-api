@@ -3,23 +3,17 @@ import type { AIService, ChatMessage } from "../types";
 
 const client = new Cerebras({ apiKey: process.env.CEREBRAS_API_KEY });
 
-type CerebrasMessage = {
-  role: "system" | "user" | "assistant";
-  content: string;
-};
-
 export const cerebrasService: AIService = {
   name: "Cerebras",
   chat: async function (messages: ChatMessage[]) {
     const models = ["gpt-oss-120b", "llama3.1-8b"];
 
-    const cerebrasMessages: CerebrasMessage[] = messages as CerebrasMessage[];
-
-    let lastError: Error | null = null;
+    let lastError: any = null;
     for (const model of models) {
       try {
+        console.log(`[Cerebras] Trying model: ${model}`);
         const stream = await client.chat.completions.create({
-          messages: cerebrasMessages,
+          messages,
           model,
           stream: true,
         });
@@ -29,15 +23,18 @@ export const cerebrasService: AIService = {
         }>;
 
         return (async function* () {
-          let result = await iterator.next();
-          while (!result.done) {
-            yield result.value.choices[0]?.delta?.content || "";
-            result = await iterator.next();
+          for await (const chunk of stream) {
+            yield chunk.choices[0]?.delta?.content || "";
           }
         })();
-      } catch (error) {
-        lastError = error as Error;
-        console.error(`Failed with model ${model}:`, error);
+      } catch (error: any) {
+        lastError = error;
+        console.error(`[Cerebras] Model ${model} failed:`, error.message);
+
+        // Retry only if it's a model-related error
+        if (error.status !== 400 && error.status !== 404) {
+          break;
+        }
       }
     }
 
