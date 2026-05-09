@@ -11,10 +11,7 @@ type CerebrasMessage = {
 export const cerebrasService: AIService = {
   name: "Cerebras",
   chat: async function (messages: ChatMessage[]) {
-    const models = [
-      "llama3.3-70b",
-      "llama3.1-8b",
-    ];
+    const models = ["gpt-oss-120b", "llama3.1-8b"];
 
     const cerebrasMessages: CerebrasMessage[] = messages as CerebrasMessage[];
 
@@ -27,7 +24,9 @@ export const cerebrasService: AIService = {
           stream: true,
         });
 
-        const iterator = stream[Symbol.asyncIterator]() as AsyncIterator<{ choices: Array<{ delta: { content?: string } }> }>;
+        const iterator = stream[Symbol.asyncIterator]() as AsyncIterator<{
+          choices: Array<{ delta: { content?: string } }>;
+        }>;
 
         return (async function* () {
           let result = await iterator.next();

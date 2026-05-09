@@ -15,9 +15,9 @@ export const openRouterService: AIService = {
     });
 
     const models = [
-      "google/gemini-2.0-flash-exp:free",
-      "deepseek/deepseek-r1:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
+      "minimax/minimax-m2.5:free",
+      "openai/gpt-oss-120b:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
     ];
 
     let lastError: Error | null = null;

@@ -8,7 +8,7 @@ export const groqService: AIService = {
   chat: async function (messages: ChatMessage[]) {
     const stream = await groq.chat.completions.create({
       messages,
-      model: "llama-3.3-70b-versatile", // O el modelo disponible en la capa gratuita
+      model: "qwen3-32b", // O el modelo disponible en la capa gratuita
       stream: true,
     });
 
