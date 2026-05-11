@@ -16,8 +16,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "types": [
-      "bun", // add Bun global
-      "node"
+      "bun",
+      "@cloudflare/workers-types"
     ]
   }
 }

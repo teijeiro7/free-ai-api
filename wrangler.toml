@@ -1,0 +1,10 @@
+name = "free-ai-api"
+main = "src/worker.ts"
+compatibility_date = "2024-05-02"
+
+[observability]
+enabled = true
+
+# Definimos las variables para que wrangler sepa qué esperar (aunque los valores reales irán en secrets)
+[vars]
+ENVIRONMENT = "production"
