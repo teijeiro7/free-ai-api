@@ -1,93 +1,57 @@
-# Bun AI API Gateway
+# Bun AI API Gateway (Cloudflare Workers Ready)
 
-Un proxy/gateway API ligero y rápido construido con [Bun](https://bun.sh) que unifica múltiples proveedores de IA (Groq, Cerebras, OpenRouter) en una única interfaz compatible con OpenAI.
+Un proxy/gateway API ultra-ligero y rápido que unifica múltiples proveedores de IA (Groq, Cerebras, OpenRouter) en una única interfaz compatible con OpenAI. Optimizado para **Cloudflare Workers** y compatible con **Bun**.
 
 ## 🚀 Características
 
-- **Multi-proveedor**: Soporte integrado para Groq (Llama 3.3), Cerebras (Llama 3.1) y OpenRouter (Gemini 2.0 Flash Exp).
-- **Failover Automático (Round-Robin)**: Si un servicio falla, automáticamente intenta con el siguiente en la lista.
-- **Streaming**: Soporte completo para Server-Sent Events (SSE) para respuestas en tiempo real.
-- **Ligero y Rápido**: Construido sobre el runtime de Bun para máximo rendimiento.
-- **CORS Habilitado**: Configurado para aceptar peticiones desde cualquier origen, ideal para consumir desde el frontend.
+- **Máximo Rendimiento**: Sin SDKs pesados. Usa `fetch` nativo para cold starts instantáneos.
+- **Multi-proveedor**: Groq, Cerebras y OpenRouter.
+- **Failover Inteligente**: Round-robin entre proveedores y reintento automático entre modelos.
+- **Dual Runtime**: Despliégalo en Cloudflare Workers o ejecútalo localmente con Bun.
+- **Streaming SSE**: Soporte completo para respuestas en tiempo real.
 
-## 📋 Requisitos Previos
+## ⚙️ Configuración (Cloudflare Workers)
 
-- [Bun](https://bun.sh) instalado en tu sistema.
+1. **Instala las dependencias**:
+   ```bash
+   npm install
+   ```
 
-## 🛠️ Instalación
+2. **Configura tus API Keys como Secrets**:
+   ```bash
+   npx wrangler secret put GROQ_API_KEY
+   npx wrangler secret put CEREBRAS_API_KEY
+   npx wrangler secret put OPENROUTER_API_KEY
+   ```
 
-1.  Clona el repositorio:
+3. **Despliega**:
+   ```bash
+   npm run deploy
+   ```
 
-    ```bash
-    git clone <tu-repositorio>
-    cd <tu-carpeta-del-proyecto>
-    ```
+## ⚙️ Configuración (Local con Bun)
 
-2.  Instala las dependencias:
-    ```bash
-    bun install
-    ```
+1. **Archivo .env**:
+   Crea un `.env` con tus claves:
+   ```env
+   GROQ_API_KEY=...
+   CEREBRAS_API_KEY=...
+   OPENROUTER_API_KEY=...
+   ```
 
-## ⚙️ Configuración
+2. **Ejecuta**:
+   ```bash
+   npm start
+   ```
 
-Crea un archivo `.env` en la raíz del proyecto y añade tus claves de API:
+## 🛠️ Desarrollo
 
-```env
-GROQ_API_KEY=tu_clave_de_groq
-CEREBRAS_API_KEY=tu_clave_de_cerebras
-OPENROUTER_API_KEY=tu_clave_de_openrouter
-PORT=3000 # Opcional, por defecto 3000
-```
+- **Simular Workers localmente**: `npm run dev`
+- **Test de API**: `bun run test_api.ts`
 
-## ▶️ Uso
+## 🏗️ Estructura
 
-### Iniciar el servidor
-
-Modo desarrollo (con recarga automática):
-
-```bash
-bun dev
-```
-
-Modo producción:
-
-```bash
-bun start
-```
-
-### Endpoint de Chat
-
-**POST** `/chat`
-
-El servidor espera un cuerpo JSON con una lista de mensajes compatibles con el formato de chat completions de OpenAI.
-
-**Ejemplo de solicitud (cURL):**
-
-```bash
-curl -X POST http://localhost:3000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [
-      { "role": "user", "content": "Hola, ¿quién eres?" }
-    ]
-  }'
-```
-
-**Respuesta:**
-
-El servidor devolverá un stream de eventos (Server-Sent Events) con el contenido de la respuesta.
-
-## 🧪 Testing
-
-El proyecto incluye un script de prueba para verificar rápidamente que todo funciona correctamente:
-
-```bash
-bun run test_api.ts
-```
-
-## 🏗️ Estructura del Proyecto
-
-- `index.ts`: Punto de entrada de la aplicación y servidor HTTP.
-- `services/`: Implementaciones específicas de cada proveedor de IA.
-- `types.ts`: Definiciones de tipos TypeScript compartidos.
-- `nixpacks.toml`: Configuración para despliegue automatizado (ej. en Railway/Render).
+- `src/worker.ts`: Entry point (Fetch handler).
+- `src/services.ts`: Lógica de streaming nativa.
+- `src/types.ts`: Definiciones de tipos.
+- `wrangler.toml`: Configuración de Cloudflare.
