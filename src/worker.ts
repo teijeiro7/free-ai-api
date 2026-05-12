@@ -5,20 +5,28 @@ const PROVIDERS: AIServiceConfig[] = [
   {
     name: "Groq",
     baseURL: "https://api.groq.com/openai/v1",
-    models: ["qwen-2.5-coder-32b", "llama-3.3-70b-versatile"],
+    models: [
+      "openai/gpt-oss-120b",
+      "llama-3.3-70b-versatile",
+      "qwen-2.5-coder-32b",
+    ],
   },
   {
     name: "Cerebras",
     baseURL: "https://api.cerebras.ai/v1",
-    models: ["llama3.1-8b", "llama3.1-70b"],
+    models: [
+      "gpt-oss-120b",
+      "llama-3.3-70b",
+      "llama3.1-8b",
+    ],
   },
   {
     name: "OpenRouter",
     baseURL: "https://openrouter.ai/api/v1",
     models: [
-      "minimax/minimax-m2.5:free",
       "openai/gpt-oss-120b:free",
-      "google/gemini-2.0-flash-exp:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "qwen/qwen3-coder:free",
     ],
   },
 ];
