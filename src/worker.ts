@@ -1,4 +1,4 @@
-import { streamChatCompletion } from "./services";
+import { streamChatCompletion, chatCompletion } from "./services";
 import type { ChatMessage, Env, AIServiceConfig } from "./types";
 
 const PROVIDERS: AIServiceConfig[] = [
@@ -31,11 +31,42 @@ const PROVIDERS: AIServiceConfig[] = [
   },
 ];
 
+function getApiKey(env: Env, providerName: string): string | undefined {
+  const keyName = `${providerName.toUpperCase()}_API_KEY` as keyof Env;
+  // @ts-ignore
+  return env[keyName] || (typeof process !== "undefined" ? process.env[keyName] : undefined);
+}
+
+async function callProvider(
+  provider: AIServiceConfig,
+  messages: ChatMessage[],
+  options?: { max_tokens?: number; temperature?: number }
+): Promise<string> {
+  const apiKey = getApiKey({}, provider.name);
+  if (!apiKey) throw new Error(`No API key for ${provider.name}`);
+
+  for (const model of provider.models) {
+    try {
+      console.log(`Trying ${provider.name} with model ${model}`);
+      return await chatCompletion(
+        provider.baseURL,
+        apiKey,
+        model,
+        messages,
+        options?.max_tokens,
+        options?.temperature
+      );
+    } catch (err) {
+      console.error(`${provider.name} (${model}) failed:`, err);
+    }
+  }
+  throw new Error(`All models failed for ${provider.name}`);
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // CORS Headers
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -46,7 +77,6 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Health check
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ status: "ok" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,27 +94,18 @@ export default {
           });
         }
 
-        // Determinar API keys (Workers env vs Bun process.env)
-        const getApiKey = (providerName: string) => {
-          const keyName = `${providerName.toUpperCase()}_API_KEY` as keyof Env;
-          // @ts-ignore
-          return env[keyName] || (typeof process !== "undefined" ? process.env[keyName] : undefined);
-        };
-
-        // Algoritmo Round-Robin para elegir servicio inicial
         const startIndex = Math.floor(Math.random() * PROVIDERS.length);
         let lastError: any = null;
 
         for (let i = 0; i < PROVIDERS.length; i++) {
           const provider = PROVIDERS[(startIndex + i) % PROVIDERS.length];
-          const apiKey = getApiKey(provider.name);
+          const apiKey = getApiKey(env, provider.name);
 
           if (!apiKey) {
             console.warn(`Skipping ${provider.name}: No API key found`);
             continue;
           }
 
-          // Intentar con los modelos del proveedor
           for (const model of provider.models) {
             try {
               console.log(`Trying ${provider.name} with model ${model}`);
@@ -101,6 +122,70 @@ export default {
                   "Content-Type": "text/event-stream",
                   "Cache-Control": "no-cache",
                 },
+              });
+            } catch (err) {
+              console.error(`${provider.name} (${model}) failed:`, err);
+              lastError = err;
+            }
+          }
+        }
+
+        throw lastError || new Error("All AI providers failed");
+      } catch (error: any) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
+      try {
+        const body = await request.json();
+        const messages = body.messages as ChatMessage[];
+        const maxTokens = body.max_tokens;
+        const temperature = body.temperature;
+
+        if (!messages || !Array.isArray(messages)) {
+          return new Response(JSON.stringify({ error: "Invalid messages" }), {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        const startIndex = Math.floor(Math.random() * PROVIDERS.length);
+        let lastError: any = null;
+
+        for (let i = 0; i < PROVIDERS.length; i++) {
+          const provider = PROVIDERS[(startIndex + i) % PROVIDERS.length];
+          const apiKey = getApiKey(env, provider.name);
+
+          if (!apiKey) {
+            console.warn(`Skipping ${provider.name}: No API key found`);
+            continue;
+          }
+
+          for (const model of provider.models) {
+            try {
+              console.log(`[Non-stream] Trying ${provider.name} with model ${model}`);
+              const content = await chatCompletion(
+                provider.baseURL,
+                apiKey,
+                model,
+                messages,
+                maxTokens,
+                temperature
+              );
+
+              return new Response(JSON.stringify({
+                choices: [{
+                  message: {
+                    role: "assistant",
+                    content
+                  }
+                }]
+              }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             } catch (err) {
               console.error(`${provider.name} (${model}) failed:`, err);
