@@ -6,9 +6,9 @@ const PROVIDERS: AIServiceConfig[] = [
     name: "Groq",
     baseURL: "https://api.groq.com/openai/v1",
     models: [
-      "openai/gpt-oss-120b",
       "llama-3.3-70b-versatile",
-      "qwen-2.5-coder-32b",
+      "deepseek-r1-distill-llama-70b",
+      "mixtral-8x7b-32768",
     ],
   },
   {
