@@ -15,9 +15,9 @@ const PROVIDERS: AIServiceConfig[] = [
     name: "Cerebras",
     baseURL: "https://api.cerebras.ai/v1",
     models: [
-      "gpt-oss-120b",
       "llama-3.3-70b",
       "llama3.1-8b",
+      "llama3.2-3b",
     ],
   },
   {
