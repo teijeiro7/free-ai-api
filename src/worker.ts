@@ -24,9 +24,9 @@ const PROVIDERS: AIServiceConfig[] = [
     name: "OpenRouter",
     baseURL: "https://openrouter.ai/api/v1",
     models: [
-      "openai/gpt-oss-120b:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
       "qwen/qwen3-coder:free",
+      "google/gemma-4-31b-it:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
     ],
   },
 ];
