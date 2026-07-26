@@ -20,7 +20,7 @@ binding = "AI"
 # then replace the id below with the one it prints.
 [[kv_namespaces]]
 binding = "CATALOG"
-id = "REPLACE_WITH_REAL_KV_NAMESPACE_ID"
+id = "467897e68c024ac987d8dec15c781d87"
 
 # Refreshes the discovered model catalog once a day so provider rotations
 # never require a redeploy.
