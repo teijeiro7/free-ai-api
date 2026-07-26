@@ -42,11 +42,14 @@ describe("chat completions routing", () => {
     delete mutableEnv.GROQ_API_KEY;
     delete mutableEnv.CEREBRAS_API_KEY;
     delete mutableEnv.OPENROUTER_API_KEY;
+    delete mutableEnv.GEMINI_API_KEY;
     vi.unstubAllGlobals();
   });
 
   it("uses the first live candidate for an alias, in preference order", async () => {
-    await seedCatalog({ cerebras: ["llama3.1-8b"], groq: ["llama-3.1-8b-instant"] });
+    env.GEMINI_API_KEY = "gemini-key";
+    // "fast" prefers groq's llama-3.1-8b-instant ahead of gemini's flash-lite.
+    await seedCatalog({ groq: ["llama-3.1-8b-instant"], gemini: ["gemini-2.5-flash-lite"] });
     const fetchMock = vi.fn(async (_input: RequestInfo | URL) => mockOpenAiCompletion("hola"));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -55,7 +58,7 @@ describe("chat completions routing", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(String(fetchMock.mock.calls[0][0])).toContain("api.cerebras.ai");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("api.groq.com");
   });
 
   it("skips a preferred model that isn't in the live catalog", async () => {

@@ -11,32 +11,30 @@ export interface PreferredModel {
  * skipped instead of breaking the gateway the way the old hardcoded list did.
  */
 const FAST: PreferredModel[] = [
-  { providerId: "cerebras", model: "llama3.1-8b" },
   { providerId: "groq", model: "llama-3.1-8b-instant" },
   { providerId: "gemini", model: "gemini-2.5-flash-lite" },
   { providerId: "workers-ai", model: "@cf/meta/llama-3.1-8b-instruct" },
 ];
 
 const SMART: PreferredModel[] = [
-  { providerId: "cerebras", model: "qwen-3-235b-a22b-instruct-2507" },
-  { providerId: "groq", model: "moonshotai/kimi-k2-instruct" },
-  { providerId: "groq", model: "meta-llama/llama-4-maverick-17b-128e-instruct" },
-  { providerId: "gemini", model: "gemini-2.5-flash" },
-  { providerId: "openrouter", model: "deepseek/deepseek-r1:free" },
+  { providerId: "gemini", model: "gemini-2.5-pro" },
+  { providerId: "cerebras", model: "gpt-oss-120b" },
+  { providerId: "groq", model: "openai/gpt-oss-120b" },
+  { providerId: "openrouter", model: "nvidia/nemotron-3-ultra-550b-a55b:free" },
   { providerId: "workers-ai", model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast" },
 ];
 
 const JSON_TIER: PreferredModel[] = [
   { providerId: "gemini", model: "gemini-2.5-flash" },
   { providerId: "groq", model: "llama-3.3-70b-versatile" },
-  { providerId: "cerebras", model: "llama-3.3-70b" },
-  { providerId: "openrouter", model: "qwen/qwen3-235b-a22b:free" },
+  { providerId: "cerebras", model: "gpt-oss-120b" },
+  { providerId: "openrouter", model: "google/gemma-4-31b-it:free" },
 ];
 
 const LONG: PreferredModel[] = [
+  { providerId: "gemini", model: "gemini-2.5-pro" },
   { providerId: "gemini", model: "gemini-2.5-flash" },
   { providerId: "groq", model: "llama-3.3-70b-versatile" },
-  { providerId: "cerebras", model: "llama-3.3-70b" },
 ];
 
 function dedupe(list: PreferredModel[]): PreferredModel[] {

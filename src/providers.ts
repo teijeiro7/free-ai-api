@@ -24,6 +24,9 @@ export const PROVIDERS: ProviderDef[] = [
     baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
     keyName: "GEMINI_API_KEY",
     modelsPath: "/models",
+    // Gemini's /models listing returns fully-qualified names ("models/gemini-2.5-flash"),
+    // but its OpenAI-compat chat/completions endpoint expects the bare id.
+    normalizeModelId: (id) => id.replace(/^models\//, ""),
   },
   {
     id: "openrouter",

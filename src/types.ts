@@ -18,6 +18,8 @@ export interface OpenAICompatProvider {
   modelsPath: string;
   /** Keep a model from the provider's /models listing only if this returns true. */
   filterModel?: (raw: Record<string, unknown>) => boolean;
+  /** Maps a discovered id to the id actually accepted in a chat/completions `model` field. */
+  normalizeModelId?: (id: string) => string;
 }
 
 export interface WorkersAiProvider {

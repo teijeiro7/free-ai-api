@@ -31,7 +31,8 @@ async function fetchProviderModels(provider: ProviderDef, env: Env): Promise<str
     return list
       .filter((entry) => (provider.filterModel ? provider.filterModel(entry) : true))
       .map((entry) => entry.id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0);
+      .filter((id): id is string => typeof id === "string" && id.length > 0)
+      .map((id) => (provider.normalizeModelId ? provider.normalizeModelId(id) : id));
   } catch (err) {
     console.warn(`Model discovery errored for ${provider.name}:`, err);
     return [];
