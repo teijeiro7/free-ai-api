@@ -7,17 +7,10 @@
     "moduleDetection": "force",
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "composite": true,
     "strict": true,
-    "downlevelIteration": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": [
-      "bun",
-      "@cloudflare/workers-types"
-    ]
+    "types": ["@cloudflare/workers-types"]
   }
 }

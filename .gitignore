@@ -10,6 +10,11 @@ coverage/
 dist/
 build/
 
+# Wrangler / TypeScript build artifacts
+.wrangler/
+*.tsbuildinfo
+.dev.vars
+
 # Misc
 .DS_Store
 .env

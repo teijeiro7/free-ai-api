@@ -1,10 +1,28 @@
 name = "free-ai-api"
-main = "src/worker.ts"
-compatibility_date = "2024-05-02"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
 
 [observability]
 enabled = true
 
-# Definimos las variables para que wrangler sepa qué esperar (aunque los valores reales irán en secrets)
 [vars]
 ENVIRONMENT = "production"
+ALLOWED_ORIGINS = ""
+
+# Personal gateway: no signup, no key. Cloudflare's curated free catalog rarely
+# rotates, so it's the one provider that skips live /models discovery.
+[ai]
+binding = "AI"
+
+# Catalog cache + per-model cooldown state. Create with:
+#   npx wrangler login
+#   npx wrangler kv namespace create CATALOG
+# then replace the id below with the one it prints.
+[[kv_namespaces]]
+binding = "CATALOG"
+id = "REPLACE_WITH_REAL_KV_NAMESPACE_ID"
+
+# Refreshes the discovered model catalog once a day so provider rotations
+# never require a redeploy.
+[triggers]
+crons = ["0 4 * * *"]
