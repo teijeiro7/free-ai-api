@@ -165,6 +165,37 @@ describe("chat completions routing", () => {
     expect(body.usage).toEqual({ prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 });
   });
 
+  it("normalizes a provider that returns message.content as an array of parts", async () => {
+    await seedCatalog({ groq: ["llama-3.1-8b-instant"] });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    role: "assistant",
+                    content: [{ type: "text", text: "ho" }, { type: "text", text: "la" }],
+                  },
+                  finish_reason: "stop",
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+      )
+    );
+
+    const res = await exports.default.fetch(
+      authedRequest({ model: "fast", messages: [{ role: "user", content: "hi" }] })
+    );
+    const body = await readJson(res);
+
+    expect(body.choices[0].message.content).toBe("hola");
+  });
+
   it("treats an unknown, non-alias model as auto instead of hard-failing", async () => {
     await seedCatalog({ groq: ["llama-3.1-8b-instant"] });
     vi.stubGlobal("fetch", vi.fn(async () => mockOpenAiCompletion("hola")));

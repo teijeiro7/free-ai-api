@@ -139,14 +139,30 @@ async function callOpenAiCompatible(env: Env, candidate: Candidate, req: Upstrea
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
+    choices?: Array<{ message?: { content?: unknown }; finish_reason?: string }>;
     usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
   };
-  const content = data.choices?.[0]?.message?.content;
+  const content = coerceMessageContent(data.choices?.[0]?.message?.content);
   if (!content) {
     throw new UpstreamFailure(502, null, `Empty response from ${provider.name}`);
   }
   return { content, usage: data.usage, finishReason: data.choices?.[0]?.finish_reason ?? "stop" };
+}
+
+/**
+ * Most providers return `message.content` as a plain string, but some return an
+ * array of content parts (e.g. `[{ type: "text", text: "..." }]`) instead. This
+ * gateway's contract promises callers a plain string, so normalize here rather
+ * than leaking the provider-specific shape.
+ */
+function coerceMessageContent(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw)) {
+    return raw
+      .map((part) => (typeof part === "string" ? part : ((part as { text?: string })?.text ?? "")))
+      .join("");
+  }
+  return "";
 }
 
 /** Calls one candidate. Always returns stream output already framed as OpenAI SSE chunks. */
