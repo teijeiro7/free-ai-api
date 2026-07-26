@@ -1,6 +1,7 @@
 import type { ChatMessage, Env } from "./types";
 import type { Candidate } from "./router";
 import { findProvider, getApiKey } from "./providers";
+import { parseSseLines } from "./sse";
 
 const UPSTREAM_TIMEOUT_MS = 30_000;
 
@@ -16,6 +17,7 @@ export interface UpstreamResult {
   content?: string;
   stream?: ReadableStream;
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  finishReason?: string;
 }
 
 export class UpstreamFailure extends Error {
@@ -30,52 +32,34 @@ export class UpstreamFailure extends Error {
 }
 
 function workersAiStreamToOpenAiSse(input: ReadableStream, model: string): ReadableStream {
-  const reader = input.getReader();
-  const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const id = `chatcmpl-${crypto.randomUUID()}`;
   const created = Math.floor(Date.now() / 1000);
 
   return new ReadableStream({
     async start(controller) {
-      let buffer = "";
       try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed === "data: [DONE]") continue;
-            if (!trimmed.startsWith("data: ")) continue;
-
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const delta = json?.response ?? "";
-              if (!delta) continue;
-              const chunk = {
-                id,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                choices: [{ index: 0, delta: { content: delta }, finish_reason: null }],
-              };
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-            } catch {
-              // Malformed line from Workers AI — skip it.
-            }
+        await parseSseLines(input, (raw) => {
+          try {
+            const json = JSON.parse(raw);
+            const delta = json?.response ?? "";
+            if (!delta) return;
+            const chunk = {
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [{ index: 0, delta: { content: delta }, finish_reason: null }],
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+          } catch {
+            // Malformed line from Workers AI — skip it.
           }
-        }
+        });
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       } catch (err) {
         controller.error(err);
-      } finally {
-        reader.releaseLock();
       }
     },
   });
@@ -103,7 +87,7 @@ async function callWorkersAi(env: Env, candidate: Candidate, req: UpstreamReques
   if (!content) {
     throw new UpstreamFailure(502, null, "Empty response from Workers AI");
   }
-  return { content };
+  return { content, finishReason: "stop" };
 }
 
 async function callOpenAiCompatible(env: Env, candidate: Candidate, req: UpstreamRequest): Promise<UpstreamResult> {
@@ -155,14 +139,14 @@ async function callOpenAiCompatible(env: Env, candidate: Candidate, req: Upstrea
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
     usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
   };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new UpstreamFailure(502, null, `Empty response from ${provider.name}`);
   }
-  return { content, usage: data.usage };
+  return { content, usage: data.usage, finishReason: data.choices?.[0]?.finish_reason ?? "stop" };
 }
 
 /** Calls one candidate. Always returns stream output already framed as OpenAI SSE chunks. */

@@ -16,11 +16,11 @@ function authedRequest(body: unknown) {
   });
 }
 
-function mockOpenAiCompletion(content: string, usage?: Record<string, number>) {
-  return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content } }], usage }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+function mockOpenAiCompletion(content: string, usage?: Record<string, number>, finishReason = "stop") {
+  return new Response(
+    JSON.stringify({ choices: [{ message: { role: "assistant", content }, finish_reason: finishReason }], usage }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
 }
 
 describe("chat completions routing", () => {
@@ -139,11 +139,13 @@ describe("chat completions routing", () => {
     expect(captured.body?.response_format).toEqual({ type: "json_object" });
   });
 
-  it("returns a full OpenAI-shaped response", async () => {
+  it("returns a full OpenAI-shaped response, passing through the upstream finish_reason", async () => {
     await seedCatalog({ groq: ["llama-3.1-8b-instant"] });
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => mockOpenAiCompletion("hola", { prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 }))
+      vi.fn(async () =>
+        mockOpenAiCompletion("hola", { prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 }, "length")
+      )
     );
 
     const res = await exports.default.fetch(
@@ -156,7 +158,7 @@ describe("chat completions routing", () => {
     expect(typeof body.created).toBe("number");
     expect(body.model).toBe("llama-3.1-8b-instant");
     expect(body.choices[0].message).toEqual({ role: "assistant", content: "hola" });
-    expect(body.choices[0].finish_reason).toBe("stop");
+    expect(body.choices[0].finish_reason).toBe("length");
     expect(body.usage).toEqual({ prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 });
   });
 

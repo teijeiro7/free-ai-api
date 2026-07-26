@@ -72,7 +72,11 @@ async function handleChatRequest(
         });
       }
 
-      return jsonResponse(buildChatCompletionResponse(candidate.model, result.content ?? "", result.usage), 200, cors);
+      return jsonResponse(
+        buildChatCompletionResponse(candidate.model, result.content ?? "", result.usage, result.finishReason),
+        200,
+        cors
+      );
     } catch (err) {
       if (err instanceof UpstreamFailure) {
         lastFailure = err;

@@ -39,7 +39,7 @@ export async function resolveCandidates(env: Env, requestedModel: string): Promi
     const providerIds = Object.keys(catalog.models) as ProviderId[];
     const exactProvider = providerIds.find((id) => catalogHas(catalog, id, requestedModel));
     if (exactProvider) {
-      preferences = [{ provider: exactProvider, model: requestedModel }, ...ALIASES.auto];
+      preferences = [{ providerId: exactProvider, model: requestedModel }, ...ALIASES.auto];
       resolvedTier = "exact";
     } else {
       preferences = ALIASES.auto;
@@ -51,15 +51,15 @@ export async function resolveCandidates(env: Env, requestedModel: string): Promi
   const seen = new Set<string>();
 
   for (const pref of preferences) {
-    if (!configured.has(pref.provider)) continue;
-    if (!catalogHas(catalog, pref.provider, pref.model)) continue;
+    if (!configured.has(pref.providerId)) continue;
+    if (!catalogHas(catalog, pref.providerId, pref.model)) continue;
 
-    const key = `${pref.provider}:${pref.model}`;
+    const key = `${pref.providerId}:${pref.model}`;
     if (seen.has(key)) continue;
-    if (await isInCooldown(env, pref.provider, pref.model)) continue;
+    if (await isInCooldown(env, pref.providerId, pref.model)) continue;
 
     seen.add(key);
-    candidates.push({ providerId: pref.provider, model: pref.model });
+    candidates.push({ providerId: pref.providerId, model: pref.model });
   }
 
   // Safety net: every preferred id was stale, cooled down, or unconfigured —
