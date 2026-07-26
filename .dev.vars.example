@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local `wrangler dev` (gitignored). In production these
+# are Wrangler secrets — see README.md.
+
+GATEWAY_API_KEY=change-me
+
+GROQ_API_KEY=
+CEREBRAS_API_KEY=
+OPENROUTER_API_KEY=
+GEMINI_API_KEY=

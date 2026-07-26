@@ -1,0 +1,15 @@
+# Test-only Wrangler config. Mirrors wrangler.toml but omits the `[ai]` binding:
+# Workers AI can't be simulated locally and always tries to open a remote
+# session, which would require CLOUDFLARE_API_TOKEN just to run `npm test`.
+# Its absence here also doubles as the "no binding configured" test fixture.
+name = "free-ai-api"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[vars]
+ENVIRONMENT = "test"
+ALLOWED_ORIGINS = ""
+
+[[kv_namespaces]]
+binding = "CATALOG"
+id = "test-catalog-namespace"
