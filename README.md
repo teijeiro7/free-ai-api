@@ -1,8 +1,8 @@
 # free-ai-api
 
 Personal AI gateway on Cloudflare Workers. Unifies Groq, Cerebras, Gemini,
-OpenRouter (`:free` models), Mistral, NVIDIA NIM, GitHub Models and Workers AI
-behind a single OpenAI-compatible API, with automatic model discovery so a
+OpenRouter (`:free` models), Mistral, NVIDIA NIM and Workers AI behind a
+single OpenAI-compatible API, with automatic model discovery so a
 provider deprecating or renaming a model doesn't break the gateway — it just
 stops being offered.
 
@@ -73,7 +73,6 @@ redeploy to route around that.
    npx wrangler secret put GEMINI_API_KEY
    npx wrangler secret put MISTRAL_API_KEY
    npx wrangler secret put NVIDIA_API_KEY
-   npx wrangler secret put GITHUB_MODELS_TOKEN
    ```
    Workers AI needs no key — it's wired via the `[ai]` binding in
    `wrangler.toml` and used as a last-resort provider.

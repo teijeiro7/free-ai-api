@@ -5,7 +5,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export type ProviderId = "groq" | "cerebras" | "openrouter" | "gemini" | "mistral" | "nvidia" | "github" | "workers-ai";
+export type ProviderId = "groq" | "cerebras" | "openrouter" | "gemini" | "mistral" | "nvidia" | "workers-ai";
 
 export type ApiKeyName =
   | "GROQ_API_KEY"
@@ -13,8 +13,7 @@ export type ApiKeyName =
   | "OPENROUTER_API_KEY"
   | "GEMINI_API_KEY"
   | "MISTRAL_API_KEY"
-  | "NVIDIA_API_KEY"
-  | "GITHUB_MODELS_TOKEN";
+  | "NVIDIA_API_KEY";
 
 export interface OpenAICompatProvider {
   id: Exclude<ProviderId, "workers-ai">;
@@ -47,7 +46,6 @@ export interface Env {
   GEMINI_API_KEY?: string;
   MISTRAL_API_KEY?: string;
   NVIDIA_API_KEY?: string;
-  GITHUB_MODELS_TOKEN?: string;
   ALLOWED_ORIGINS?: string;
   ENVIRONMENT?: string;
   CATALOG: KVNamespace;

@@ -59,14 +59,6 @@ export const PROVIDERS: ProviderDef[] = [
     modelsPath: "/models",
   },
   {
-    id: "github",
-    name: "GitHub Models",
-    kind: "openai-compatible",
-    baseURL: "https://models.inference.ai.azure.com",
-    keyName: "GITHUB_MODELS_TOKEN",
-    modelsPath: "/models",
-  },
-  {
     id: "workers-ai",
     name: "Workers AI",
     kind: "workers-ai",
