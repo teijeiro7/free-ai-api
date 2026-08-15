@@ -43,6 +43,22 @@ export const PROVIDERS: ProviderDef[] = [
     },
   },
   {
+    id: "mistral",
+    name: "Mistral",
+    kind: "openai-compatible",
+    baseURL: "https://api.mistral.ai/v1",
+    keyName: "MISTRAL_API_KEY",
+    modelsPath: "/models",
+  },
+  {
+    id: "nvidia",
+    name: "NVIDIA NIM",
+    kind: "openai-compatible",
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    keyName: "NVIDIA_API_KEY",
+    modelsPath: "/models",
+  },
+  {
     id: "workers-ai",
     name: "Workers AI",
     kind: "workers-ai",
